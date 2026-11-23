@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Staff Calendar — Bella Vista Salon{% endblock %}
+{% block content %}
+<h1>Staff Calendar</h1>
+<p>Today's bookings — one column per stylist.</p>
+<div class="grid">
+  {% for stylist in stylists %}
+  <article>
+    <h2>{{ stylist.name }}</h2>
+    <p>{{ stylist.role }}</p>
+    {% for booking in by_stylist[stylist.id] %}
+    {% set service = service_for(booking.service_id) %}
+    <p>
+      <strong>{{ booking.time }}</strong> — {{ booking.client }}<br>
+      {{ service.name }} ({{ service.duration_minutes }} min)<br>
+      <span class="badge">{{ status_label(booking.status) }}</span>
+    </p>
+    {% else %}
+    <p>No bookings today.</p>
+    {% endfor %}
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}
