@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Add a service — Bella Vista Salon{% endblock %}
+{% block content %}
+<h1>Add a service</h1>
+<p>Staff form. The new service is saved to the database and appears on the services list.</p>
+{% if error %}
+<p><strong>{{ error }}</strong></p>
+{% endif %}
+<form method="post" action="{{ url_for('service_new') }}">
+  <label for="name">Service name
+    <input type="text" id="name" name="name" value="{{ name or '' }}" placeholder="Signature Haircut">
+  </label>
+  <label for="category">Category
+    <select id="category" name="category">
+      <option value="Hair" {% if category == 'Hair' %}selected{% endif %}>Hair</option>
+      <option value="Color" {% if category == 'Color' %}selected{% endif %}>Color</option>
+      <option value="Nails" {% if category == 'Nails' %}selected{% endif %}>Nails</option>
+    </select>
+  </label>
+  <label for="description">Description
+    <input type="text" id="description" name="description" value="{{ description or '' }}" placeholder="What the service includes">
+  </label>
+  <label for="duration_minutes">Duration (minutes)
+    <input type="number" id="duration_minutes" name="duration_minutes" min="1" placeholder="60">
+  </label>
+  <label for="price_dollars">Price (dollars)
+    <input type="number" id="price_dollars" name="price_dollars" min="0" step="0.01" placeholder="45.00">
+  </label>
+  <button type="submit">Save service</button>
+</form>
+<p><a href="{{ url_for('services') }}">Back to services</a></p>
+{% endblock %}
