@@ -4,6 +4,7 @@
 <h1>Services</h1>
 <p>{{ services | length }} services, grouped by category.</p>
 
+{% if services %}
 {% for category, items in grouped_services.items() %}
 <h2>{{ category }}</h2>
 <div class="grid">
@@ -18,4 +19,7 @@
   {% endfor %}
 </div>
 {% endfor %}
+{% else %}
+<p>No services available yet.</p>
+{% endif %}
 {% endblock %}

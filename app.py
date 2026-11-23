@@ -113,7 +113,9 @@ def find_by_id(records, record_id):
 @app.template_filter("money")
 def money_filter(price_cents):
     """Show a price stored in whole cents with two decimals, e.g. $45.00."""
-    return f"${price_cents / 100:.2f}"
+    # Integer arithmetic, not float division: 4500 cents -> $45.00 exactly.
+    dollars, cents = divmod(int(price_cents), 100)
+    return f"${dollars}.{cents:02d}"
 
 
 @app.context_processor
@@ -166,7 +168,7 @@ def service_detail(service_id):
         s
         for s in SAMPLE_SERVICES
         if s["category"] == service["category"] and s["id"] != service["id"]
-    ]
+    ][:3]
     return render_template("service.html", service=service, related=related)
 
 
