@@ -1,77 +1,27 @@
-"""Bella Vista Salon (Option B) — EGN 475 Week 3 Assignment 3.1.
+"""Bella Vista Salon (Option B) — EGN 475 Week 4 Assignment 4.1.
 
-Every screen is a Flask route with its own Jinja template.
-Data comes from Python lists of dicts (sample data only — no database yet).
+Flask + SQLite. Services are read from the database (schema.sql, via db.py);
+the staff calendar and My Appointments pages still use sample lists in Week 4
+(their tables are seeded, and they move to the database in a later week).
 Prices are stored as whole cents and shown with two decimals via the
 ``money`` filter.
 """
 
-from flask import Flask, abort, render_template
+import os
+
+from flask import Flask, abort, redirect, render_template, request, url_for
+
+import db
 
 app = Flask(__name__)
+app.config["DATABASE"] = os.path.join(app.instance_path, "salon.sqlite")
+os.makedirs(app.instance_path, exist_ok=True)
+db.init_app(app)
 
 # ---------------------------------------------------------------------------
-# Sample data (shaped like future database rows)
+# Sample data still used in Week 4 for the calendar / appointments pages
+# (no stylists table yet in the Week 4 schema)
 # ---------------------------------------------------------------------------
-
-SAMPLE_SERVICES = [
-    {
-        "id": 1,
-        "name": "Signature Haircut",
-        "category": "Hair",
-        "price_cents": 4500,
-        "duration_minutes": 60,
-        "description": "Consultation, wash, precision cut and finish styling.",
-    },
-    {
-        "id": 2,
-        "name": "Blowout & Style",
-        "category": "Hair",
-        "price_cents": 3500,
-        "duration_minutes": 45,
-        "description": "Wash, blow-dry and styled finish for a polished look.",
-    },
-    {
-        "id": 3,
-        "name": "Balayage",
-        "category": "Color",
-        "price_cents": 12500,
-        "duration_minutes": 150,
-        "description": "Hand-painted highlights for a soft, sun-kissed blend.",
-    },
-    {
-        "id": 4,
-        "name": "Full Color & Gloss",
-        "category": "Color",
-        "price_cents": 8500,
-        "duration_minutes": 120,
-        "description": "Full color application with a shine gloss and treatment.",
-    },
-    {
-        "id": 5,
-        "name": "Classic Manicure",
-        "category": "Nails",
-        "price_cents": 3000,
-        "duration_minutes": 45,
-        "description": "Shape, cuticle care, polish and a relaxing hand massage.",
-    },
-    {
-        "id": 6,
-        "name": "Spa Pedicure",
-        "category": "Nails",
-        "price_cents": 5500,
-        "duration_minutes": 60,
-        "description": "Soak, exfoliation, nail care and polish in our spa chairs.",
-    },
-    {
-        "id": 7,
-        "name": "Bridal Updo",
-        "category": "Hair",
-        "price_cents": 7500,
-        "duration_minutes": 90,
-        "description": "Elegant updo styling for weddings and special occasions.",
-    },
-]
 
 SAMPLE_STYLISTS = [
     {"id": 1, "name": "Sofia Marino", "role": "Senior Stylist"},
@@ -106,6 +56,14 @@ def find_by_id(records, record_id):
     return None
 
 
+def get_services():
+    """All active services from the database, ordered by category then name."""
+    return db.get_db().execute(
+        "SELECT id, name, category, description, duration_minutes, price_cents"
+        " FROM services WHERE active = 1 ORDER BY category, name"
+    ).fetchall()
+
+
 # ---------------------------------------------------------------------------
 # Jinja helpers
 # ---------------------------------------------------------------------------
@@ -123,7 +81,9 @@ def lookup_helpers():
     """Helpers so templates can look up a service/stylist by id."""
 
     def service_for(service_id):
-        return find_by_id(SAMPLE_SERVICES, service_id)
+        return db.get_db().execute(
+            "SELECT * FROM services WHERE id = ?", (service_id,)
+        ).fetchone()
 
     def stylist_for(stylist_id):
         return find_by_id(SAMPLE_STYLISTS, stylist_id)
@@ -144,39 +104,80 @@ def lookup_helpers():
 
 @app.route("/")
 def index():
-    featured = SAMPLE_SERVICES[:3]
+    featured = db.get_db().execute(
+        "SELECT id, name, category, description, duration_minutes, price_cents"
+        " FROM services WHERE active = 1 ORDER BY id LIMIT 3"
+    ).fetchall()
     return render_template("index.html", featured=featured)
 
 
 @app.route("/services")
 def services():
+    all_services = get_services()
     # Group services by category, keeping the order they first appear in.
     grouped = {}
-    for service in SAMPLE_SERVICES:
+    for service in all_services:
         grouped.setdefault(service["category"], []).append(service)
     return render_template(
-        "services.html", services=SAMPLE_SERVICES, grouped_services=grouped
+        "services.html", services=all_services, grouped_services=grouped
     )
 
 
 @app.route("/services/<int:service_id>")
 def service_detail(service_id):
-    service = find_by_id(SAMPLE_SERVICES, service_id)
+    service = db.get_db().execute(
+        "SELECT * FROM services WHERE id = ?", (service_id,)
+    ).fetchone()
     if service is None:
         abort(404)
-    related = [
-        s
-        for s in SAMPLE_SERVICES
-        if s["category"] == service["category"] and s["id"] != service["id"]
-    ][:3]
+    related = db.get_db().execute(
+        "SELECT id, name, category, description, duration_minutes, price_cents"
+        " FROM services WHERE category = ? AND id != ? AND active = 1"
+        " ORDER BY name LIMIT 3",
+        (service["category"], service["id"]),
+    ).fetchall()
     return render_template("service.html", service=service, related=related)
+
+
+@app.route("/admin/services/new", methods=["GET", "POST"])
+def service_new():
+    """Staff form to add a service. GET shows the form, POST saves it."""
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        category = request.form.get("category", "Hair").strip() or "Hair"
+        description = request.form.get("description", "").strip()
+        error = None
+        try:
+            duration_minutes = int(request.form.get("duration_minutes", ""))
+            price_cents = int(round(float(request.form.get("price_dollars", "")) * 100))
+            if duration_minutes <= 0 or price_cents < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            duration_minutes = price_cents = None
+            error = "Enter a duration in minutes and a price in dollars."
+        if not name:
+            error = "A service name is required."
+        if error:
+            return render_template(
+                "service_new.html", error=error,
+                name=name, category=category, description=description,
+            ), 400
+        database = db.get_db()
+        database.execute(
+            "INSERT INTO services (name, category, description,"
+            " duration_minutes, price_cents, active)"
+            " VALUES (?, ?, ?, ?, ?, 1)",
+            (name, category, description, duration_minutes, price_cents),
+        )
+        database.commit()
+        return redirect(url_for("services"))
+    return render_template("service_new.html", error=None)
 
 
 @app.route("/book")
 def book():
-    # Display-only form in Week 3; saving arrives in Week 4.
     return render_template(
-        "book.html", services=SAMPLE_SERVICES, stylists=SAMPLE_STYLISTS
+        "book.html", services=get_services(), stylists=SAMPLE_STYLISTS
     )
 
 

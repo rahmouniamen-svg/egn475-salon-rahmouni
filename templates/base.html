@@ -19,6 +19,7 @@
         <li><a href="{{ url_for('book') }}" {% if request.endpoint == 'book' %}aria-current="page"{% endif %}>Book</a></li>
         <li><a href="{{ url_for('calendar') }}" {% if request.endpoint == 'calendar' %}aria-current="page"{% endif %}>Staff Calendar</a></li>
         <li><a href="{{ url_for('appointments') }}" {% if request.endpoint == 'appointments' %}aria-current="page"{% endif %}>My Appointments</a></li>
+        <li><a href="{{ url_for('service_new') }}" {% if request.endpoint == 'service_new' %}aria-current="page"{% endif %}>Add Service</a></li>
       </ul>
     </nav>
   </header>
@@ -26,7 +27,7 @@
     {% block content %}{% endblock %}
   </main>
   <footer class="container">
-    <small>Bella Vista Salon &middot; Calle Ocho &middot; Prototype — data is sample data only.</small>
+    <small>Bella Vista Salon &middot; Calle Ocho &middot; Services are stored in a SQLite database.</small>
   </footer>
 </body>
 </html>
