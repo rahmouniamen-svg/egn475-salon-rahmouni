@@ -1,0 +1,27 @@
+/* Bella Vista Salon — brand color. */
+:root {
+  --pico-primary: #c2185b;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--pico-primary);
+  border-radius: 999px;
+  color: var(--pico-primary);
+  font-size: 0.8rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #fce4ec;
+  color: #880e4f;
+  font-size: 0.8rem;
+}
+
+article {
+  display: flex;
+  flex-direction: column;
+}
