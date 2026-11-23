@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Book an appointment — Bella Vista Salon{% endblock %}
+{% block content %}
+<h1>Book an appointment</h1>
+<p>Display-only form in Week 3 — saving arrives in Week 4.</p>
+<form>
+  <label for="name">Your name
+    <input type="text" id="name" name="name" placeholder="Lucia Fernandez">
+  </label>
+  <label for="service">Service
+    <select id="service" name="service_id">
+      {% for service in services %}
+      <option value="{{ service.id }}">{{ service.name }} — {{ service.price_cents | money }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label for="stylist">Stylist
+    <select id="stylist" name="stylist_id">
+      {% for stylist in stylists %}
+      <option value="{{ stylist.id }}">{{ stylist.name }} — {{ stylist.role }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label for="date">Date
+    <input type="date" id="date" name="date">
+  </label>
+  <label for="time">Time
+    <input type="time" id="time" name="time">
+  </label>
+  <button type="submit">Request appointment</button>
+</form>
+<p><a href="{{ url_for('services') }}">Browse services first</a></p>
+{% endblock %}
