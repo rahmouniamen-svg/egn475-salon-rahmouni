@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Services — Bella Vista Salon{% endblock %}
+{% block content %}
+<h1>Services</h1>
+<p>{{ services | length }} services, grouped by category.</p>
+
+{% for category, items in grouped_services.items() %}
+<h2>{{ category }}</h2>
+<div class="grid">
+  {% for service in items %}
+  <article>
+    <span class="tag">{{ service.category }}</span>
+    <h3>{{ service.name }}</h3>
+    <p>{{ service.description }}</p>
+    <p><strong>{{ service.price_cents | money }}</strong> &middot; {{ service.duration_minutes }} min</p>
+    <p><a href="{{ url_for('service_detail', service_id=service.id) }}">View details</a></p>
+  </article>
+  {% endfor %}
+</div>
+{% endfor %}
+{% endblock %}

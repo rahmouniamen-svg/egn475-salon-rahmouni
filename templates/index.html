@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Home — Bella Vista Salon{% endblock %}
+{% block content %}
+<h1>Welcome to Bella Vista Salon</h1>
+<p>Hair, color and nails on Calle Ocho. Take a look at our services and book your next visit.</p>
+<p><a href="{{ url_for('book') }}" role="button">Book an appointment</a></p>
+
+<h2>Featured services</h2>
+<div class="grid">
+  {% for service in featured %}
+  <article>
+    <span class="tag">{{ service.category }}</span>
+    <h3>{{ service.name }}</h3>
+    <p>{{ service.description }}</p>
+    <p><strong>{{ service.price_cents | money }}</strong> &middot; {{ service.duration_minutes }} min</p>
+    <p><a href="{{ url_for('service_detail', service_id=service.id) }}">View details</a></p>
+  </article>
+  {% endfor %}
+</div>
+<p><a href="{{ url_for('services') }}">See all services</a></p>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ service.name }} — Bella Vista Salon{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('services') }}">&larr; All services</a></p>
+<h1>{{ service.name }}</h1>
+<p><span class="tag">{{ service.category }}</span></p>
+<p>{{ service.description }}</p>
+<p><strong>{{ service.price_cents | money }}</strong> &middot; {{ service.duration_minutes }} minutes</p>
+<p><a href="{{ url_for('book') }}" role="button">Book this service</a></p>
+
+{% if related %}
+<h2>More {{ service.category }} services</h2>
+<ul>
+  {% for other in related %}
+  <li><a href="{{ url_for('service_detail', service_id=other.id) }}">{{ other.name }}</a> — {{ other.price_cents | money }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}
