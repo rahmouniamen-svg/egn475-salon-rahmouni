@@ -1,10 +1,17 @@
-/* Bella Vista Salon — brand color. */
-:root {
+/* Bella Vista Salon — brand color.
+   Pico 2 defines its colors in :root:not([data-theme=dark]), which is more
+   specific than a plain :root rule, so the brand color must use the same
+   selector or Pico's default blue wins. */
+:root:not([data-theme=dark]) {
   --pico-primary: #c2185b;
+  --pico-primary-background: #c2185b;
+  --pico-primary-border: #c2185b;
+  --pico-primary-focus: rgba(194, 24, 91, 0.35);
 }
 
 .tag {
   display: inline-block;
+  align-self: flex-start;
   padding: 0.15rem 0.6rem;
   border: 1px solid var(--pico-primary);
   border-radius: 999px;
